@@ -1,0 +1,230 @@
+<HTML>
+<!-- $Id: mx700-commands.html,v 1.2 1999/02/07 12:00:31 bousch Exp $ -->
+<HEAD>
+<TITLE>MX-700 commands</TITLE>
+</HEAD>
+<BODY>
+
+<H1>List of all MX-700 commands</H1>
+
+Command 4C (see below) returns a list of all the commands supported by
+the camera. On my MX-700 it gives the following list:
+<PRE>
+00 02 07 09 0A 0B 0C 0E 0F 11 13 15 17 19 1B 27 29 30 32 34
+4C 51 62 64 80 82 84 86 C0 20 22 2A 2B.
+</PRE>
+
+<H2>00 - Download thumbnail</H2>
+
+Input: frame number (int)
+<BR>
+Output: picture data (variable size)
+<P>
+The first bytes of the picture (enough to get the whole Exif header) are
+transferred.
+
+<H2>02 - Download picture</H2>
+
+Input: frame number (int)
+<BR>
+Output: picture data (variable size)
+<P>
+The whole picture is transferred.
+
+<H2>07 - Change speed</H2>
+
+Input: new speed parameter (byte)
+<BR>
+Output: errno (byte)
+<P>
+The command prefix is 0x01, instead of 0x00 for all other commands.
+
+<H2>09 - Get software version</H2>
+
+Input: none
+<BR>
+Output: string (variable size)
+<P>
+This command returns "<TT>01.00,MX-700</TT>" on my digicam.
+
+<H2>0A - Get picture name</H2>
+
+Input: frame number (int)
+<BR>
+Output: the image filename (variable size)
+
+<H2>0B - Number of pictures</H2>
+
+Input: none
+<BR>
+Output: the number of pictures (int)
+
+<H2>0C - No operation</H2>
+
+Input: none
+<BR>
+Output: none
+<P>
+This command does nothing.
+
+<H2>0E - Upload picture</H2>
+
+<H2>0F - Set picture name for upload</H2>
+
+<H2>11 - Unknown</H2>
+
+<H2>13 - Unknown</H2>
+
+<H2>15 - Get name of latest picture</H2>
+
+Input: none
+<BR>
+Output: picture name (variable size)
+
+<H2>17 - Get image size</H2>
+
+Input: frame number (int)
+<BR>
+Output: picture size (long)
+
+<H2>19 - Delete picture</H2>
+
+Input: frame number (int)
+<BR>
+Output: errno (byte)
+
+<H2>1B - Get card status and available space</H2>
+
+Input: none
+<BR>
+Output: card status (byte), available space (long)
+<P>
+The card status is 0 in the normal case, non-zero for exceptional conditions (no card present,
+card not formatted, etc.). It is followed by the free space on the card, which is always a
+multiple of the block size (512 bytes), or zero on error.
+
+<H2>20 - Unknown</H2>
+
+<H2>22 - Unknown</H2>
+
+<H2>2A - Get directory name</H2>
+
+Input: directory number (int)
+<BR>
+Output: directory name (variable size)
+
+<H2>2B - Unknown</H2>
+
+<H2>27 - Shoot</H2>
+
+Input: none
+<BR>
+Output: frame number (int), command status (int)
+<P>
+Take a picture. Don't know how to interpret the "command status" part.
+
+<H2>29 - Get camera type</H2>
+
+Input: none
+<BR>
+Output: string (variable size)
+<P>
+This command returns "<TT>DIGCAM\MX-700\FUJIFILM</TT>" on my digicam.
+
+<H2>30 - Get flash mode</H2>
+
+Input: none
+<BR>
+Output: flash status (byte)
+<P>
+Possible values are: 0 (disabled), 1 (forced), 2 (strobe) and 3 (auto).
+
+<H2>32 - Set flash mode</H2>
+
+Input: new flash mode (byte)
+<BR>
+Output: errno (byte)
+
+<H2>34 - Load flash</H2>
+
+Input: flash intensity (int)
+<BR>
+Output: errno (byte)
+<P>
+The Fuji software uses a value of 200 for the flash intensity. This command can take
+several seconds to complete. It should be issued before attempting to take a picture
+with command 0x27.
+
+<H2>4C - Get list of supported commands</H2>
+
+Input: none
+<BR>
+Output: string (variable size)
+<P>
+Returns a list of the commands accepted by this camera.
+
+<H2>51 - Get command information</H2>
+
+Input: command number (byte)
+<BR>
+Output: something (int)
+<P>
+I guess the "something" is an indication of how much time the command can take, so
+that the software can provide appropriate timeout values. In this case, the
+unit is probably something like 1/10 second, so that the timeouts will be
+between 0.5 and 20 seconds.
+
+<H2>62 - Download preview</H2>
+
+Input: none
+<BR>
+Output: string (variable length)
+<P>
+The preview is transferred.
+
+<H2>64 - Take preview</H2>
+
+Input: none
+<BR>
+Output: command status (int)
+<P>
+This command should be followed by 0x62 (download preview).
+
+<H2>80 - Get camera ID</H2>
+
+Input: none
+<BR>
+Output: a string (10 bytes)
+<P>
+The "camera ID" is returned. This identifier, stored in the camera's nonvolatile
+memory, is 10 bytes long. It is used to fill the "Copyright" field in the
+Exif header of pictures.
+
+<H2>82 - Set camera ID</H2>
+
+Input: new camera ID string (variable size)
+<BR>
+Output: errno (byte)
+<P>
+The string is truncated or padded with spaces to be exactly 10 bytes long, and is
+stored as the new "Camera ID".
+
+<H2>84 - Get date</H2>
+
+Input: none
+<BR>
+Output: YYYYMMDDHHMMSS (14 bytes)
+
+<H2>86 - Set date</H2>
+
+Input: YYYYMMDDHHMMSS (14 bytes)
+<BR>
+Output: errno (byte)
+
+<H2>C0 - Get image information</H2>
+
+<HR>
+<ADDRESS>Thierry Bousch &lt;bousch@topo.math.u-psud.fr&gt;</ADDRESS>
+
+</BODY>
+</HTML>

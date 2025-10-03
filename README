@@ -1,0 +1,197 @@
+			F U J I P L A Y
+			===============
+
+$Id: README,v 1.6 1999/02/23 09:30:49 bousch Exp $
+
+
+WHAT IS IT ?
+============
+
+Fujiplay is a C program for Unix systems, to download pictures from some
+Fujifilm digital cameras, like the DS-7 and MX-700, using the serial link.
+
+Fujiplay has been written by Thierry Bousch <bousch@topo.math.u-psud.fr>
+using the protocol analysis from Mamoru Ohno <mamo@yk.rim.or.jp>. For
+several reasons, I was not entirely happy with mamo's GET_DS7 software:
+it was slow (because of Perl) and not very reliable. This is my attempt
+at writing a download tool which would be simple, fast, reliable and
+convenient.
+
+Highlights:
+
+* The program tries to determine the maximum speed supported by the camera.
+  So when Fuji releases a new model which supports 115200 bps, we'll be
+  ready for it (hopefully).
+
+* The program should detect all parity errors (not tested), thus
+  improving the robustness of the one-byte xor checksum.
+
+* It will not overwrite picture files without your consent. This is
+  essentially to help resuming interrupted transfers; you just restart
+  the program with the same command line.
+
+* The program should detect disk full errors (not tested).
+
+* You cannot have a truncated image file; if you have a DSCxxxxx.JPG on
+  your disk then it means that the transfer has been successfully
+  completed.
+
+* The program can be gracefully interrupted with ^C (or whatever your
+  interrupt character is).
+
+* The program allows you to upload pictures to the camera, delete
+  pictures from the camera, and to "press the shutter" remotely.
+  You can also set the time/date and the "camera ID".
+
+* The source should be reasonably portable to other, non-POSIX systems.
+
+
+DS-7 COMPATIBILITY
+==================
+
+Experimental support for the venerable DS-7 camera has been added in version
+1.33 of fujiplay. Use option "-7" to enable it.  It should also work with
+equally old models like the Apple QuickTake 200. This has not been tested,
+but versions 1.32 and older will definitely not work with the DS-7.
+
+You should NOT use this option unless you really have a DS-7 or similar
+camera, as fujiplay will assume a minimal capability set and you'll only
+be able to list, download and delete pictures. All the more recent cameras
+can be queried for their actual capability set, and this is what fujiplay
+does by default (that is, unless "-7" is used).
+
+
+LEGAL ISSUES
+============
+
+This program is in the public domain. You can do anything you want with
+it, except pretend that you wrote it.
+
+THIS SOFTWARE COMES WITH ABSOLUTELY NO WARRANTY, EITHER EXPRESSED OR
+IMPLIED. USE AT YOUR OWN RISK.
+
+
+INSTALLATION
+============
+
+Check the Makefile and type "make", then move the "fujiplay" binary to an
+appropriate place. It will use /dev/fujifilm, which should be a symbolic
+link to the appropriate call-out device (/dev/cua2 on my system). If you
+only have a call-in device, like /dev/ttyS2, make sure it's in "local" mode.
+
+It you want to use the preview feature, you should also install "yycc2ppm"
+as well.
+
+
+HOW TO DOWNLOAD PICTURES
+========================
+
+Running "fujiplay" without arguments will give you a list of the pictures
+in the camera. The first field is the "frame number" (i.e. the position
+in memory), followed by the picture filename, and the size in bytes. If
+the frame number is followed by a star, it means that a file with the
+same name is already on the disk; these frames will be skipped, unless
+you use the "-f" (force) option.
+
+The arguments can be: picture numbers like "4", ranges like "4-10" or the
+keywords "all" (self-explanatory) and "last" (the highest-numbered picture).
+The numbers are interpreted like frame numbers. You can use the "-p"
+option to have them interpreted as the xxxxx which appear in the file names
+(DSCxxxxx.JPG). With arguments, fujiplay will download the selected
+pictures, skipping those already present in the current directory (unless
+"-f" is used).
+
+If the "-d" option is present, pictures which have been successfully
+transferred onto the computer will be deleted from the Smartmedia card.
+Typical use: "fujiplay -d all".
+
+
+OTHER FEATURES
+==============
+
+1) Delete
+
+To erase pictures DSC00101.JPG and DSC00105.JPG from the Smartmedia card,
+just issue the command
+
+  fujiplay delete DSC00101.JPG DSC00105.JPG
+
+Granted, that's too verbose. But at least it should avoid mistakes.
+See also the "-d" option for downloads, discussed above.
+
+2) Upload pictures
+
+The camera expects files called DSCxxxxx.JPG, so fujiplay will
+(transparently) rename them if necessary. Example of use:
+
+  fujiplay upload /tmp/DSC00101.JPG /tmp/foobar.jpg
+
+Fujiplay won't attempt to upload pictures if there isn't enough space on
+the card.
+
+3) Shoot
+
+Fujiplay allows you to "press the shutter" from the computer. You have
+to recharge the flash first, if necessary (I'm not sure of the meaning
+of the numerical parameter for "charge", but I assume a value of 0
+cannot hurt; the fuji twain driver uses 200 for the MX-700). You can
+also set the flash mode from the computer, if you wish. Example:
+
+  fujiplay setflash 1
+  fujiplay charge 0
+  fujiplay shoot
+
+The first command will put the flash in "forced" (fill-in) mode, the
+second command will charge the flash, and the third command will take
+the picture. The frame number, picture name and size are then written to
+standard output.
+
+4) Set date
+
+The keyword "setdate" can be followed by "gmt" (universal time), "local"
+(local time), or a 14-character string formatted as YYYYMMDDHHMMSS.
+Can be useful to test Y2K compliance. My MX-700 for instance accepts dates
+between 1980/01/01 and 2043/12/31.
+
+5) Set camera ID
+
+The "camera ID" is a string stored into the camera nonvolatile memory.
+It's at most ten characters long (if longer, it'll be truncated; if
+shorter, it'll be padded with spaces). This string is used to fill the
+"Copyright" tag (that's tag 0x8298) in the Exif header. You can put
+your name if it's short enough. Example:
+
+  fujiplay setid 'Th. Bousch'
+
+6) Preview
+
+The command "fujiplay preview" will cause the camera to take a small
+picture of the current scene. Since it's very small (80x60 pixels) it
+can be quickly transferred. The preview is sent to standard output, in
+some special format; you can pipe it into "yycc2ppm" to convert it into
+the more common raw PPM format.
+
+
+DEBUGGING
+=========
+
+It has been reported that the baudrate autodetection routine doesn't work
+with some older Fuji models, which claim to support higher speeds than they
+really do. Even if 115200 bps is supported by the camera, you might want
+to use it at a lower speed for better reliability. Consequently, there's a
+new option, "-B baudrate", to bypass autodetection and select a fixed
+speed. Possible baudrate values are 115200, 57600, 38400, 19200, 9600 and
+0. The value "0" means "autodetect", which is fujiplay's normal behaviour,
+but with the side effect that debugging is enabled.
+
+Apart from "-B0", another option useful for debugging is "-L". It will
+display the list of commands (in hex) supported by the camera.
+Read the document "mx700-commands.html" for details.
+
+If you send me bug/malfunctioning reports, please include the output
+of "fujiplay -B0 -L" as it will ease my job immensely. The output from
+strace(1) can also be useful.
+
+
+Enjoy,
+Thierry Bousch <bousch@topo.math.u-psud.fr>

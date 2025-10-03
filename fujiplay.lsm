@@ -1,0 +1,16 @@
+Begin3
+Title:		Fujiplay
+Version:	1.33
+Entered-date:	1999/02/23
+Description:	A program to download pictures from some Fujifilm digital
+                cameras, like the DS-7 and MX-700, using the serial link.
+		It can also "press the shutter", upload images to the
+		camera, or delete images from the camera.
+Keywords:	Digital cameras, Fujifilm, serial, download
+Author:		bousch@topo.math.u-psud.fr (Thierry Bousch)
+Maintained-by:	bousch@topo.math.u-psud.fr (Thierry Bousch)
+Primary-site:	http://topo.math.u-psud.fr/~bousch/fujiplay.html
+		12kB fujiplay.tgz
+Platforms:	POSIX
+Copying-policy:	Public domain
+End
