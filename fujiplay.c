@@ -853,9 +853,9 @@ int main (int argc, char **argv)
 	}
 
 	init_serial(devname);
-	void set_baudrate();
-	void get_command_list(int ds7_compat);
-	void get_picture_list();
+	set_baudrate();
+	get_command_list(ds7_compat);
+	get_picture_list();
 
 	if (optind == argc) {
 		if (has_cmd[0x09])
