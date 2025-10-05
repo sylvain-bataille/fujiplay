@@ -580,11 +580,11 @@ void init_serial (const char *devname)
 	attention();
 }
 
-void set_baudrate (void)
+void set_baudrate (int info)
 {
 	struct baudrate_info *bi;
 	int error;
-	int debug = (desired_speed >= 0);
+	int debug = info;
 
 	for (bi = brinfo; bi->number; bi++) {
 		/* Speed autodetection or not ? */
@@ -779,6 +779,7 @@ Options:\r\n\
   -p		Assume picture numbers instead of frame numbers\r\n\
   -h		Display this help message\r\n\
   -v		Version information\r\n\
+  -i 		Print information logs\r\n\
 Pictures:\r\n\
   all		All pictures\r\n\
   last		Last picture\r\n\
@@ -805,7 +806,7 @@ int main (int argc, char **argv)
 	extern int optind, opterr, optopt;
 
 	int i, c, deleted;
-	int ds7_compat=0, force=0, picnums=0, delete_after=0;
+	int ds7_compat=0, force=0, picnums=0, delete_after=0, info=0;
 	struct sigaction s2act;
 	time_t now;
 	struct tm *ptm;
@@ -818,7 +819,7 @@ int main (int argc, char **argv)
 	sigaction(SIGINT, &s2act, NULL);
 
 	/* Command line parsing */
-	while ((c = getopt(argc,argv,"B:D:L7dfhpv")) != EOF)
+	while ((c = getopt(argc,argv,"B:D:L7dfhpvi")) != EOF)
 	switch(c) {
 		case 'B':
 			desired_speed = atoi(optarg);
@@ -847,15 +848,38 @@ int main (int argc, char **argv)
 		case 'v':
 			printf(Copyright);
 			return 0;
+		case 'i':
+			info = 1;
+			break;
 		default:
 			fprintf(stderr, Usage);
 			return 1;
 	}
 
+	if(info) {
+		fprintf(stderr, "Using device %s\n", devname);
+	}
 	init_serial(devname);
-	set_baudrate();
+	if (info)
+	{
+		fprintf(stderr, "Connection established.\n");
+		fprintf(stderr, "Set baudrate...\n");
+	}
+	set_baudrate(info);
+	if (info)
+	{
+		fprintf(stderr, "Getting command list...\n");
+	}
 	get_command_list(ds7_compat);
+	if (info)
+	{
+		fprintf(stderr, "Getting picture list...\n");
+	}
 	get_picture_list();
+	if (info)
+	{
+		fprintf(stderr, "%d pictures on the camera.\n", pictures);
+	}
 
 	if (optind == argc) {
 		if (has_cmd[0x09])
